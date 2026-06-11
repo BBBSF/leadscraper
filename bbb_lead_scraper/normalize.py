@@ -119,7 +119,7 @@ def normalize_dataframe(df: pd.DataFrame, source_name: str, source_url: str, cat
     out["zip"] = out["zip"].map(clean_text).str.extract(r"(\d{5})", expand=False).fillna("")
 
     # Fill missing city/zip/phone from address or raw concatenated row text when possible.
-    raw_text = df.astype(str).agg(" | ".join, axis=1)
+    raw_text = df.apply(lambda row: " | ".join(clean_text(value) for value in row), axis=1)
     out["phone"] = out.apply(
         lambda r: r["phone"] or extract_phone(raw_text.loc[r.name]), axis=1
     )
