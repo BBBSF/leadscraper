@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+data/output*/
+data/test_*/
+data/full_run_*/

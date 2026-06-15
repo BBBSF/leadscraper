@@ -74,6 +74,8 @@ sources:
     source_url: "https://business.sfchamber.com/list"
     category: "chamber_member"
     max_pages_per_letter: 5
+    enrich_profiles: true
+    profile_enrich_limit: 100
 
   oakland_chamber_directory:
     enabled: true
@@ -84,6 +86,8 @@ sources:
     source_url: "https://business.oaklandchamber.com/list"
     category: "chamber_member"
     max_pages_per_letter: 5
+    enrich_profiles: true
+    profile_enrich_limit: 100
 
   marin_builders_directory:
     enabled: true
@@ -94,6 +98,8 @@ sources:
     source_url: "https://members.marinbuilders.com/list"
     category: "trade_association_member"
     max_pages_per_letter: 5
+    enrich_profiles: true
+    profile_enrich_limit: 100
 
   cslb_manual_ingest:
     enabled: true
