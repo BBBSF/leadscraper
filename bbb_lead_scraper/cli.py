@@ -9,6 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from bbb_lead_scraper.config import load_config
+from bbb_lead_scraper.google_places import enrich_dataframe
 from bbb_lead_scraper.normalize import dedupe, normalize_dataframe
 from bbb_lead_scraper.scoring import score_leads
 from bbb_lead_scraper.sources import GrowthZoneDirectorySource, LocalFileSource, SocrataSource
@@ -107,6 +108,33 @@ def list_sources(args: argparse.Namespace) -> int:
     return 0
 
 
+def enrich_google_places(args: argparse.Namespace) -> int:
+    load_dotenv()
+    project_root = Path(args.project_root).resolve()
+    input_path = project_root / args.input
+    output_path = project_root / args.output
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    df = pd.read_csv(input_path)
+    enriched = enrich_dataframe(
+        df,
+        limit=args.limit,
+        min_confidence=args.min_confidence,
+        only_missing_phone=not args.include_existing_phone,
+    )
+    enriched.to_csv(output_path, index=False)
+
+    attempted = enriched["google_enrichment_status"].fillna("").astype(str).str.strip().ne("")
+    status_counts = enriched.loc[attempted, "google_enrichment_status"].value_counts().to_dict()
+    phone_count = enriched.loc[attempted, "google_phone"].fillna("").astype(str).str.strip().ne("").sum()
+    website_count = enriched.loc[attempted, "google_website"].fillna("").astype(str).str.strip().ne("").sum()
+    print(f"Wrote enriched CSV: {output_path}")
+    print(f"Google phone matches: {phone_count}")
+    print(f"Google website matches: {website_count}")
+    print(f"Statuses: {status_counts}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="BBB Bay Area lead scraper")
     parser.add_argument("--project-root", default=".", help="Project root containing config/ and data/")
@@ -123,6 +151,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     list_p = sub.add_parser("list-sources", help="List configured sources")
     list_p.set_defaults(func=list_sources)
+
+    enrich_p = sub.add_parser("enrich-google-places", help="Enrich an existing CSV with Google Places")
+    enrich_p.add_argument("--input", required=True, help="Input CSV path relative to project root")
+    enrich_p.add_argument("--output", required=True, help="Output CSV path relative to project root")
+    enrich_p.add_argument("--limit", type=int, default=25, help="Maximum rows to enrich")
+    enrich_p.add_argument("--min-confidence", type=int, default=70, help="Minimum match confidence to accept")
+    enrich_p.add_argument(
+        "--include-existing-phone",
+        action="store_true",
+        help="Also enrich rows that already have a phone number",
+    )
+    enrich_p.set_defaults(func=enrich_google_places)
     return parser
 
 

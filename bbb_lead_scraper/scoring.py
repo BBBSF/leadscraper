@@ -58,6 +58,10 @@ def score_leads(df: pd.DataFrame, scoring_cfg: dict[str, Any] | None = None) -> 
             score += 20
             reasons.append("licensed or license-linked business")
 
+        if "business_license" in source or "business_license" in str(row.get("category", "")).lower():
+            score += 10
+            reasons.append("official business license record")
+
         if "permit" in source or str(row.get("permit_number", "")).strip():
             score += 20
             reasons.append("recent/current permit activity")

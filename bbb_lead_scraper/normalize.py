@@ -69,6 +69,17 @@ def clean_text(value: object) -> str:
     return text
 
 
+def clean_city(value: object) -> str:
+    text = clean_text(value)
+    if not text:
+        return ""
+    return " ".join(part.capitalize() for part in text.split())
+
+
+def clean_state(value: object) -> str:
+    return clean_text(value).upper()
+
+
 def normalize_phone(value: object) -> str:
     text = clean_text(value)
     digits = re.sub(r"\D", "", text)
@@ -172,6 +183,8 @@ def normalize_dataframe(df: pd.DataFrame, source_name: str, source_url: str, cat
     out["business_name"] = out["business_name"].map(clean_text)
     out["legal_name"] = out["legal_name"].map(clean_text)
     out["contact_name"] = out["contact_name"].map(clean_text)
+    out["city"] = out["city"].map(clean_city)
+    out["state"] = out["state"].map(clean_state)
     out["raw_category"] = out["raw_category"].map(clean_text)
     out["category"] = category or out["raw_category"]
     out["source"] = source_name
