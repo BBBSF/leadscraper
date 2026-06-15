@@ -9,6 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from bbb_lead_scraper.config import load_config
+from bbb_lead_scraper.geography import filter_allowed_counties
 from bbb_lead_scraper.google_places import enrich_dataframe
 from bbb_lead_scraper.normalize import dedupe, normalize_dataframe
 from bbb_lead_scraper.scoring import score_leads
@@ -70,6 +71,12 @@ def run(args: argparse.Namespace) -> int:
         return 2
 
     combined = pd.concat(frames, ignore_index=True)
+    before_county_filter = len(combined)
+    combined = filter_allowed_counties(combined)
+    log.info("County filter kept %d of %d normalized records", len(combined), before_county_filter)
+    if combined.empty:
+        log.error("No records remained after county filtering.")
+        return 2
     scored = score_leads(combined, config.get("lead_scoring", {}))
     deduped = dedupe(scored)
 
