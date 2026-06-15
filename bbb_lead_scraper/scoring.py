@@ -101,7 +101,7 @@ def score_leads(df: pd.DataFrame, scoring_cfg: dict[str, Any] | None = None) -> 
             score += 15
             reasons.append("BBB-sweet-spot vertical")
 
-        row = row.copy()
+        row = row.to_dict()
         row["lead_score"] = score
         row["reason_to_call"] = "; ".join(dict.fromkeys(reasons))
         rows.append(row)
